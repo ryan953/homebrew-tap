@@ -1,7 +1,6 @@
 class RepoMetrics < Formula
   desc "Fast local git repository metrics and visualizations, straight from the repo"
   homepage "https://github.com/getsentry/repo-metrics"
-  version "0.2.0"
   license "MIT"
 
   on_macos do
