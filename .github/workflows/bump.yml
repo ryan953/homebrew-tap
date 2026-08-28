@@ -1,0 +1,29 @@
+name: Bump formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      formula:
+        description: Formula name, without the .rb suffix
+        required: true
+      version:
+        description: New version, without a leading v
+        required: true
+
+jobs:
+  bump:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump the formula
+        run: scripts/bump-formula.sh "${{ inputs.formula }}" "${{ inputs.version }}"
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "${{ inputs.formula }} ${{ inputs.version }}"
+          git push
