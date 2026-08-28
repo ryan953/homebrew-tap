@@ -55,8 +55,11 @@ jobs:
 
       # These formulae install prebuilt release binaries, so there is nothing to
       # bottle. Install and test each one directly instead of `--only-formulae`.
+      # The Linux job does not run from the checkout, so `Formula/*.rb` finds
+      # nothing there. Ask Homebrew where it put the tap.
       - name: Install and test every formula
         run: |
+          cd "$(brew --repository freshghosts/tap)"
           for f in Formula/*.rb; do
             name="$(basename "$f" .rb)"
             brew install --formula "freshghosts/tap/$name"
