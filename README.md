@@ -5,15 +5,15 @@ A personal Homebrew tap for software by [@ryan953](https://github.com/ryan953).
 ## Install
 
 ```sh
-brew tap freshghosts/tap
-brew install freshghosts/tap/repo-metrics
+brew tap ryan953/tap
+brew install ryan953/tap/repo-metrics
 ```
 
 Homebrew 6 trusts a third-party formula the first time you install it by its
 full name. To trust the whole tap once, and every formula added to it later:
 
 ```sh
-brew trust --tap freshghosts/tap
+brew trust --tap ryan953/tap
 ```
 
 After that you can use short names:
@@ -80,9 +80,9 @@ Give the formula name and the new version.
 ## Check your work
 
 ```sh
-brew install --formula freshghosts/tap/<name>
-brew test --formula freshghosts/tap/<name>
-brew audit --strict freshghosts/tap/<name>
+brew install --formula ryan953/tap/<name>
+brew test ryan953/tap/<name>
+brew audit --strict ryan953/tap/<name>
 ```
 
 The `brew test-bot` workflow does the same on each push and pull request, on
@@ -95,5 +95,5 @@ macOS and Linux.
   `brew test-bot --only-formulae` and installs each formula by name instead.
 - The tap is public because `brew tap` needs read access without a token.
 - Your local clone of the tap is at
-  `$(brew --repository)/Library/Taps/freshghosts/homebrew-tap`. It is the same
+  `$(brew --repository)/Library/Taps/ryan953/homebrew-tap`. It is the same
   git repository, so you can edit and push from there too.

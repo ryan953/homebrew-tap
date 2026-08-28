@@ -59,9 +59,9 @@ jobs:
       # nothing there. Ask Homebrew where it put the tap.
       - name: Install and test every formula
         run: |
-          cd "$(brew --repository freshghosts/tap)"
+          cd "$(brew --repository ryan953/tap)"
           for f in Formula/*.rb; do
             name="$(basename "$f" .rb)"
-            brew install --formula "freshghosts/tap/$name"
-            brew test "freshghosts/tap/$name"
+            brew install --formula "ryan953/tap/$name"
+            brew test "ryan953/tap/$name"
           done
