@@ -48,15 +48,19 @@ echo "${name}: ${old} -> ${new}"
 perl -pi -e "s/\Q${old}\E/${new}/g" "${formula}"
 
 # 2. Download each URL and collect its checksum, in file order.
+urls=$(mktemp)
+urls_in "${formula}" >"${urls}"
+
 shas=()
 while read -r url
 do
   echo "  fetching ${url}"
   tmp=$(mktemp)
-  curl -sSfL "${url}" -o "${tmp}"
+  curl -sSfL --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 300 "${url}" -o "${tmp}"
   shas+=("$(sha256_of "${tmp}")")
   rm -f "${tmp}"
-done < <(urls_in "${formula}")
+done <"${urls}"
+rm -f "${urls}"
 
 [[ "${#shas[@]}" -gt 0 ]] || {
   echo "no url lines in ${formula}" >&2
