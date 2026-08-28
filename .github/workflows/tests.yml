@@ -60,5 +60,5 @@ jobs:
           for f in Formula/*.rb; do
             name="$(basename "$f" .rb)"
             brew install --formula "freshghosts/tap/$name"
-            brew test --formula "freshghosts/tap/$name"
+            brew test "freshghosts/tap/$name"
           done
