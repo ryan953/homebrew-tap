@@ -48,7 +48,9 @@ jobs:
 
       - run: brew test-bot --only-setup
 
-      # Style and audit checks over every formula in this tap.
+      # Style, readall and audit over every formula in this tap. `readall`
+      # loads each formula for every platform, so a formula must resolve to a
+      # URL even on a platform its project ships no binary for.
       - run: brew test-bot --only-tap-syntax
 
       # These formulae install prebuilt release binaries, so there is nothing to

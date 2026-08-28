@@ -47,6 +47,13 @@ brew upgrade repo-metrics
    Do not add a `version` line. Homebrew reads the version out of the URL, and
    `brew audit` rejects the duplicate.
 
+   Every platform must resolve to a URL. `brew readall` loads each formula for
+   macOS and Linux, on arm64 and x86_64, and a platform with no URL fails the
+   check. If the project ships no binary for one of them, point that platform at
+   the nearest archive and add `depends_on arch: :x86_64`, so Homebrew refuses
+   the install instead of unpacking the wrong binary. `Formula/repo-metrics.rb`
+   does this for arm64 Linux.
+
 3. Fill in the checksums without doing it by hand. Put any older version in the
    URLs, then run:
 
@@ -84,7 +91,8 @@ macOS and Linux.
 ## Notes
 
 - These formulae install prebuilt release binaries. They do not build from
-  source, and they are not bottled.
+  source, and they are not bottled. The CI therefore skips
+  `brew test-bot --only-formulae` and installs each formula by name instead.
 - The tap is public because `brew tap` needs read access without a token.
 - Your local clone of the tap is at
   `$(brew --repository)/Library/Taps/freshghosts/homebrew-tap`. It is the same

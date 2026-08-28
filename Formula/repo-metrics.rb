@@ -20,6 +20,15 @@ class RepoMetrics < Formula
       url "https://github.com/getsentry/repo-metrics/releases/download/v0.2.0/repo-metrics-v0.2.0-x86_64-unknown-linux-gnu.tar.gz"
       sha256 "efb77c3a78b4a4b75c89f79c90488e1cabf820dc5bf6b4b7a4ac903c50d6e629"
     end
+
+    # There is no aarch64 Linux release. Homebrew needs every platform to
+    # resolve to a URL, so name the x86_64 archive and let the arch requirement
+    # refuse the install instead of unpacking the wrong binary.
+    on_arm do
+      url "https://github.com/getsentry/repo-metrics/releases/download/v0.2.0/repo-metrics-v0.2.0-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "efb77c3a78b4a4b75c89f79c90488e1cabf820dc5bf6b4b7a4ac903c50d6e629"
+      depends_on arch: :x86_64
+    end
   end
 
   def install
