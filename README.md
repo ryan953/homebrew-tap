@@ -35,18 +35,21 @@ Formulae are command-line programs. Casks are macOS applications.
 | Cask | Source | Description |
 | --- | --- | --- |
 | `dex-ui` | [ryan953/dex-ui](https://github.com/ryan953/dex-ui) (private) | Tasks.app — native macOS app for dex tasks and assigned Linear issues |
+| `bg-monitor` | [ryan953/launch-agent-monitor](https://github.com/ryan953/launch-agent-monitor) (private) | BGMonitor.app — menu bar app to inspect and control LaunchAgents |
 
 ## Casks from a private repository
 
-`dex-ui` lives in a private repository, so its release download URL answers 404
-for everyone, with or without a token. The cask fetches the release asset
-through the GitHub API instead, which does accept a token.
+`dex-ui` and `bg-monitor` both live in private repositories, so their release
+download URLs answer 404 for everyone, with or without a token. Those casks
+fetch the release asset through the GitHub API instead, which does accept a
+token.
 
-To install it you need a token in the environment:
+To install one you need a token in the environment:
 
 ```sh
-export HOMEBREW_GITHUB_API_TOKEN=<a token that can read ryan953/dex-ui>
+export HOMEBREW_GITHUB_API_TOKEN=<a token that can read the source repository>
 brew install --cask ryan953/tap/dex-ui
+brew install --cask ryan953/tap/bg-monitor
 ```
 
 The token needs **Contents: Read** on the source repository. A fine-grained
@@ -58,15 +61,16 @@ Because the asset is private, the API names it by a numeric asset ID rather
 than by version. The ID changes with every release, so use
 `scripts/bump-cask.sh` rather than editing the URL by hand.
 
-`Tasks.app` is ad-hoc signed, not notarized. On a Mac with Gatekeeper
-assessment enabled, add `--no-quarantine` or macOS refuses to open it:
+`Tasks.app` and `BGMonitor.app` are both ad-hoc signed, not notarized. On a Mac
+with Gatekeeper assessment enabled, add `--no-quarantine` or macOS refuses to
+open them:
 
 ```sh
 brew install --cask --no-quarantine ryan953/tap/dex-ui
 ```
 
-Signing and notarizing the app in `ryan953/dex-ui` would remove the need for
-that flag. Making that repository public would remove the need for the token
+Signing and notarizing the app in the source repository would remove the need
+for that flag. Making the repository public would remove the need for the token
 and let CI test the cask.
 
 ## Add a new formula
@@ -145,6 +149,14 @@ and writes the version, the new asset ID and the `sha256`.
 For a formula you can also do this from GitHub: **Actions → Bump formula → Run
 workflow**. That does not work for a cask from a private repository, because
 the runner's token cannot read it. Bump those locally.
+
+`bg-monitor` is the exception, and you should not normally bump it at all. The
+**Release** workflow in `ryan953/launch-agent-monitor` cuts the release and then
+runs `scripts/bump-cask.sh bg-monitor <version>` here itself, pushing the
+resulting commit. It gets away with what this tap's own runner cannot because it
+supplies its own PAT, which can read the private source repository. If that
+token is missing the release still happens and the bump is skipped, and the
+workflow summary says so — that is when you bump it by hand.
 
 ## Check your work
 
