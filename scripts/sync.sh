@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Bump every formula in this tap that is behind its source repository.
+# Bump every entry in this tap that is behind its source repository.
 #
-#   scripts/sync-formulae.sh [--dry-run]
+#   scripts/sync.sh [--dry-run]
 #
-# Formulae are built from public repositories, so the tap can read their
-# releases and pull a new version in. Casks are not covered: their sources are
-# private, and those repositories push to the tap on release instead.
+# Every source is a public GitHub repository, so their releases are readable
+# without credentials and the tap can pull a new version in rather than waiting
+# to be pushed one.
 set -euo pipefail
 
 dry_run=false
@@ -14,10 +14,16 @@ dry_run=false
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 changed=false
 
-for formula in "${root}"/Formula/*.rb
+for file in "${root}"/Formula/*.rb "${root}"/Casks/*.rb
 do
-  name=$(basename "${formula}" .rb)
-  repo=$(sed -n 's|^[[:space:]]*homepage "https://github.com/\([^"]*\)".*|\1|p' "${formula}" | head -1)
+  [[ -e "${file}" ]] || continue
+  name=$(basename "${file}" .rb)
+  case "${file}" in
+    */Formula/*) kind=formula ;;
+    *) kind=cask ;;
+  esac
+
+  repo=$(sed -n 's|^[[:space:]]*homepage "https://github.com/\([^"]*\)".*|\1|p' "${file}" | head -1)
   repo=${repo%/}
   [[ -n "${repo}" ]] || {
     echo "${name}: no github.com homepage, skipping" >&2
@@ -31,7 +37,15 @@ do
   }
   latest=${latest#v}
 
-  current=$(sed -n 's|.*/releases/download/v\{0,1\}\([^/]*\)/.*|\1|p' "${formula}" | head -1)
+  # A cask carries an explicit version; a formula has none, because `brew audit`
+  # rejects it as redundant with the version it scans out of the URL.
+  if [[ "${kind}" == cask ]]
+  then
+    current=$(sed -n 's|^[[:space:]]*version "\([^"]*\)".*|\1|p' "${file}" | head -1)
+  else
+    current=$(sed -n 's|.*/releases/download/v\{0,1\}\([^/]*\)/.*|\1|p' "${file}" | head -1)
+  fi
+
   if [[ "${current}" == "${latest}" ]]
   then
     echo "${name}: up to date at ${current}"
@@ -44,7 +58,7 @@ do
     changed=true
     continue
   fi
-  "${root}/scripts/bump-formula.sh" "${name}" "${latest}"
+  "${root}/scripts/bump-${kind}.sh" "${name}" "${latest}"
   changed=true
 done
 

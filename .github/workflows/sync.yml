@@ -1,9 +1,9 @@
-name: Sync formulae
+name: Sync
 
-# Pulls new versions in rather than waiting to be pushed one, so a formula in a
-# work org needs no token for this tap and no reference to it. Only works
-# because a public release is readable without credentials, which is why the
-# private casks push instead.
+# Pulls new versions in rather than waiting to be pushed one. Every source is a
+# public repository, so this needs no credentials and covers formulae and casks
+# alike; it is also the safety net for a push that never arrived, which is how
+# a cask can otherwise sit at an old version after a release.
 
 on:
   schedule:
@@ -21,7 +21,7 @@ jobs:
       - name: Bump anything that is behind
         env:
           GH_TOKEN: ${{ github.token }}
-        run: scripts/sync-formulae.sh
+        run: scripts/sync.sh
 
       - name: Commit
         run: |
@@ -32,6 +32,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "sync formulae with their latest releases"
+          git commit -am "sync with the latest releases"
           git push
           git show --stat --oneline HEAD >> "$GITHUB_STEP_SUMMARY"
