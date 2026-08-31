@@ -37,6 +37,7 @@ Formulae are command-line programs. Casks are macOS applications.
 | --- | --- | --- | --- |
 | `tasks-ui` | `Tasks.app` | [ryan953/tasks-ui](https://github.com/ryan953/tasks-ui) (private) | Native macOS app for dex tasks and assigned Linear issues |
 | `bg-monitor` | `BGMonitor.app` | [ryan953/launch-agent-monitor](https://github.com/ryan953/launch-agent-monitor) (private) | Menu bar app to inspect and control LaunchAgents |
+| `worktrees-ui` | `Worktrees.app` | [ryan953/worktrees-ui](https://github.com/ryan953/worktrees-ui) (private) | Lists git worktrees and which ones hold unpushed work |
 
 The cask token does not always match its repository. `bg-monitor` comes from
 `launch-agent-monitor`, and `tasks-ui` was called `dex-ui` until the repository
@@ -47,9 +48,10 @@ was renamed. `tap_migrations.json` moves an existing `dex-ui` install across, so
 
 Two directions, chosen by who owns the source repository.
 
-**Casks push.** `tasks-ui` and `launch-agent-monitor` are personal and private.
-A private release asset cannot be read without a token, so those repositories
-call `.github/workflows/bump.yml` here when they publish a release:
+**Casks push.** `tasks-ui`, `launch-agent-monitor` and `worktrees-ui` are
+personal and private. A private release asset cannot be read without a token,
+so those repositories call `.github/workflows/bump.yml` here when they publish
+a release:
 
 ```yaml
 jobs:
@@ -96,6 +98,7 @@ A classic token with `repo` covers both:
 ```sh
 gh secret set TAP_TOKEN -R ryan953/tasks-ui
 gh secret set TAP_TOKEN -R ryan953/launch-agent-monitor
+gh secret set TAP_TOKEN -R ryan953/worktrees-ui
 ```
 
 Without the secret the bump job fails with a message that says so, and the
@@ -103,11 +106,12 @@ release itself still stands. Bump the tap by hand afterwards.
 
 ## Casks from a private repository
 
-Both casks live in private repositories, so their release download URLs answer
-404 for everyone, with or without a token. The casks fetch the release asset
-through the GitHub API instead, which does accept a token.
+`tasks-ui`, `bg-monitor` and `worktrees-ui` live in private repositories, so
+their release download URLs answer 404 for everyone, with or without a token.
+Those casks fetch the release asset through the GitHub API instead, which does
+accept a token.
 
-To install either one you need a token in the environment:
+To install one of them you need a token in the environment:
 
 ```sh
 export HOMEBREW_GITHUB_API_TOKEN=<a token that can read the source repository>
