@@ -2,16 +2,11 @@ cask "bg-monitor" do
   version "0.0.0"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
 
-  # launch-agent-monitor is a private repository, so its release download URL
-  # answers 404 for everyone, with or without a token. The API asset endpoint
-  # does accept a token, so fetch through that. Export HOMEBREW_GITHUB_API_TOKEN
-  # with `repo` scope before you install.
-  #
-  # The number is the release asset ID, which changes with every release, and
-  # names no version on its own. GitHub ignores the trailing query parameter,
-  # so it is there to record which release this ID belongs to.
-  # `scripts/bump-cask.sh` looks up the new ID for you, and the release workflow
-  # in launch-agent-monitor runs that script for you on every release.
+  # The source is private, where a plain release download URL answers 404 even
+  # with a token; only the API asset endpoint accepts one. That endpoint names
+  # the asset by an ID carrying no version, and audit demands a version in the
+  # URL, hence the query parameter GitHub ignores. Needs
+  # HOMEBREW_GITHUB_API_TOKEN with `repo` scope to install.
   url "https://api.github.com/repos/ryan953/launch-agent-monitor/releases/assets/0?v=#{version}",
       header: [
         "Accept: application/octet-stream",

@@ -1,10 +1,9 @@
 name: Sync formulae
 
-# Pulls new versions in, rather than waiting to be pushed one.
-#
-# getsentry/repo-metrics is a work repository and is deliberately not coupled to
-# anything in this personal space: it holds no token for the tap and references
-# no workflow from it. It is public, so the tap can watch its releases instead.
+# Pulls new versions in rather than waiting to be pushed one, so a formula in a
+# work org needs no token for this tap and no reference to it. Only works
+# because a public release is readable without credentials, which is why the
+# private casks push instead.
 
 on:
   schedule:

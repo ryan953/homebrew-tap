@@ -1,8 +1,7 @@
 name: Bump
 
-# Moves one formula or cask to a new version. Run it by hand, or let a source
-# repository call it on release. Keeping the logic here, not copied into each
-# project, is what stops the projects drifting apart.
+# Moves one formula or cask to a new version. Callable by a source repository
+# on release, so a single definition of "bump" serves every entry in the tap.
 
 on:
   workflow_dispatch:
@@ -73,7 +72,7 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          # A re-run, or a bump to the version already recorded, changes nothing.
+          # Re-running a release is a success, not a failed empty commit.
           if git diff --quiet; then
             echo "${NAME} is already at ${VERSION#v}." >> "$GITHUB_STEP_SUMMARY"
             exit 0
