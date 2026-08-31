@@ -7,6 +7,11 @@ cask "bg-monitor" do
   desc "Menu bar app to inspect and control LaunchAgents"
   homepage "https://github.com/ryan953/launch-agent-monitor"
 
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
   depends_on macos: :sonoma
 
   app "BGMonitor.app"

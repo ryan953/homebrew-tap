@@ -7,6 +7,11 @@ cask "prqueue" do
   desc "Sorts your GitHub pull request review queue into lanes"
   homepage "https://github.com/ryan953/prqueue"
 
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
   depends_on macos: :sonoma
 
   app "PRQueue.app"
