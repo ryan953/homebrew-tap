@@ -2,7 +2,7 @@
 # Bump one cask in this tap to a new version.
 #
 #   scripts/bump-cask.sh <cask-name> <new-version>
-#   scripts/bump-cask.sh dex-ui 1.1.0
+#   scripts/bump-cask.sh tasks-ui 1.1.0
 #
 # The casks here name a GitHub release asset by its numeric ID, because their
 # source repositories are private and only the API endpoint accepts a token.
