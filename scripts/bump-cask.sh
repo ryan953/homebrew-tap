@@ -45,11 +45,8 @@ url=$(sed -n 's/^[[:space:]]*url "\([^"]*\)".*/\1/p' "${cask}" | head -1)
   exit 1
 }
 
-# Write the version first, so a URL interpolating #{version} resolves to the
-# release being moved to rather than the one being left behind.
-perl -pi -e "s|^(\s*)version \"[^\"]*\"|\${1}version \"${new}\"|" "${cask}"
-
 payload=$(mktemp)
+asset_id=""
 
 if [[ "${url}" == *"/releases/assets/"* ]]
 then
@@ -92,10 +89,10 @@ then
     -H "Authorization: Bearer ${token}" \
     -o "${payload}" \
     "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
-
-  # 3. The ID names no version on its own, so it has to move with the version.
-  perl -pi -e "s|releases/assets/[0-9]+|releases/assets/${asset_id}|" "${cask}"
 else
+  # The URL in the file still interpolates the old version. Resolving it here
+  # rather than rewriting the cask first keeps every edit to the file below,
+  # after the download has succeeded, so a failed fetch leaves the cask alone.
   download=$(printf '%s' "${url}" | sed "s/#{version}/${new}/g")
   echo "${name}: -> ${new}"
   echo "  fetching ${download}"
@@ -106,7 +103,14 @@ fi
 sha=$(sha256_of "${payload}")
 rm -f "${payload}"
 
+# Write the version, the checksum, and for a private cask the asset ID, which
+# names no version on its own and so has to move with it.
+perl -pi -e "s|^(\s*)version \"[^\"]*\"|\${1}version \"${new}\"|" "${cask}"
 perl -pi -e "s|^(\s*)sha256 \"[0-9a-f]*\"|\${1}sha256 \"${sha}\"|" "${cask}"
+if [[ -n "${asset_id}" ]]
+then
+  perl -pi -e "s|releases/assets/[0-9]+|releases/assets/${asset_id}|" "${cask}"
+fi
 
 ruby -c "${cask}" >/dev/null
 echo "${name} is now at ${new}"
