@@ -7,6 +7,11 @@ cask "worktrees-ui" do
   desc "Lists git worktrees and which ones hold unpushed work"
   homepage "https://github.com/ryan953/worktrees-ui"
 
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
   depends_on macos: :sonoma
 
   app "Worktrees.app"
