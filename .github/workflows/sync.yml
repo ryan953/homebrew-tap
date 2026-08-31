@@ -6,8 +6,11 @@ name: Sync
 # a cask can otherwise sit at an old version after a release.
 
 on:
+  # Hourly rather than daily: this is the only path a new version takes into
+  # the tap, so the interval is how long `brew upgrade` keeps handing out the
+  # old one after a release.
   schedule:
-    - cron: "17 6 * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 jobs:
