@@ -65,3 +65,17 @@ jobs:
             brew install --formula "ryan953/tap/$name"
             brew test "ryan953/tap/$name"
           done
+
+      # Every cask source is public, so the runner can fetch one. The apps are
+      # ad-hoc signed rather than notarized, hence --no-quarantine; installing
+      # never launches them, so this checks the download, the checksum and the
+      # bundle layout.
+      - name: Install every cask
+        if: runner.os == 'macOS'
+        run: |
+          cd "$(brew --repository ryan953/tap)"
+          for c in Casks/*.rb; do
+            name="$(basename "$c" .rb)"
+            brew install --cask --no-quarantine "ryan953/tap/$name"
+            brew uninstall --cask "ryan953/tap/$name"
+          done
