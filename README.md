@@ -7,7 +7,8 @@ A personal Homebrew tap for software by [@ryan953](https://github.com/ryan953).
 ```sh
 brew tap ryan953/tap
 brew install ryan953/tap/repo-metrics
-brew install --cask ryan953/tap/dex-ui
+brew install --cask ryan953/tap/tasks-ui
+brew install --cask ryan953/tap/bg-monitor
 ```
 
 Homebrew 6 trusts a third-party formula the first time you install it by its
@@ -32,24 +33,85 @@ Formulae are command-line programs. Casks are macOS applications.
 | --- | --- | --- |
 | `repo-metrics` | [getsentry/repo-metrics](https://github.com/getsentry/repo-metrics) | Fast local git repository metrics and visualizations, straight from the repo |
 
-| Cask | Source | Description |
-| --- | --- | --- |
-| `dex-ui` | [ryan953/dex-ui](https://github.com/ryan953/dex-ui) (private) | Tasks.app — native macOS app for dex tasks and assigned Linear issues |
-| `bg-monitor` | [ryan953/launch-agent-monitor](https://github.com/ryan953/launch-agent-monitor) (private) | BGMonitor.app — menu bar app to inspect and control LaunchAgents |
+| Cask | App | Source | Description |
+| --- | --- | --- | --- |
+| `tasks-ui` | `Tasks.app` | [ryan953/tasks-ui](https://github.com/ryan953/tasks-ui) (private) | Native macOS app for dex tasks and assigned Linear issues |
+| `bg-monitor` | `BGMonitor.app` | [ryan953/launch-agent-monitor](https://github.com/ryan953/launch-agent-monitor) (private) | Menu bar app to inspect and control LaunchAgents |
+
+The cask token does not always match its repository. `bg-monitor` comes from
+`launch-agent-monitor`, and `tasks-ui` was called `dex-ui` until the repository
+was renamed. `tap_migrations.json` moves an existing `dex-ui` install across, so
+`brew upgrade` follows the rename on its own.
+
+## The tap keeps itself up to date
+
+Two directions, chosen by who owns the source repository.
+
+**Casks push.** `tasks-ui` and `launch-agent-monitor` are personal and private.
+A private release asset cannot be read without a token, so those repositories
+call `.github/workflows/bump.yml` here when they publish a release:
+
+```yaml
+jobs:
+  tap:
+    needs: release
+    uses: ryan953/homebrew-tap/.github/workflows/bump.yml@main
+    with: { kind: cask, name: tasks-ui, version: "${{ needs.release.outputs.tag }}" }
+    secrets:
+      TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+```
+
+They hang the job off the release rather than listening for
+`release: published`. That event never fires: GitHub suppresses workflow
+triggers for anything a `GITHUB_TOKEN` did, and those releases are created with
+`github.token`.
+
+**Formulae pull.** `repo-metrics` lives in `getsentry`, a work org, and is
+deliberately not coupled to this personal space — it holds no token for the tap
+and references no workflow from it. It is public, so `sync.yml` here watches its
+releases instead, daily, and bumps anything that is behind:
+
+```sh
+scripts/sync-formulae.sh --dry-run
+```
+
+That reads each formula's `homepage`, asks GitHub for the latest release, and
+compares it with the version in the URLs. Adding a public formula needs no
+change to it.
+
+Either way the bump logic itself stays here, in `scripts/`, and is never copied
+into a project. That is what stops the entries drifting apart.
+
+### The TAP_TOKEN secret
+
+Only the two cask repositories need this. A repository's own `github.token` is
+scoped to that repository, so it cannot push here:
+
+- **Contents: Read and write** on `ryan953/homebrew-tap`, to push the bump.
+- **Contents: Read** on the source repository, because a cask bump downloads the
+  release asset to checksum it.
+
+A classic token with `repo` covers both:
+
+```sh
+gh secret set TAP_TOKEN -R ryan953/tasks-ui
+gh secret set TAP_TOKEN -R ryan953/launch-agent-monitor
+```
+
+Without the secret the bump job fails with a message that says so, and the
+release itself still stands. Bump the tap by hand afterwards.
 
 ## Casks from a private repository
 
-`dex-ui` and `bg-monitor` both live in private repositories, so their release
-download URLs answer 404 for everyone, with or without a token. Those casks
-fetch the release asset through the GitHub API instead, which does accept a
-token.
+Both casks live in private repositories, so their release download URLs answer
+404 for everyone, with or without a token. The casks fetch the release asset
+through the GitHub API instead, which does accept a token.
 
-To install one you need a token in the environment:
+To install either one you need a token in the environment:
 
 ```sh
 export HOMEBREW_GITHUB_API_TOKEN=<a token that can read the source repository>
-brew install --cask ryan953/tap/dex-ui
-brew install --cask ryan953/tap/bg-monitor
+brew install --cask ryan953/tap/tasks-ui
 ```
 
 The token needs **Contents: Read** on the source repository. A fine-grained
@@ -61,17 +123,16 @@ Because the asset is private, the API names it by a numeric asset ID rather
 than by version. The ID changes with every release, so use
 `scripts/bump-cask.sh` rather than editing the URL by hand.
 
-`Tasks.app` and `BGMonitor.app` are both ad-hoc signed, not notarized. On a Mac
-with Gatekeeper assessment enabled, add `--no-quarantine` or macOS refuses to
-open them:
+Both apps are ad-hoc signed, not notarized. On a Mac with Gatekeeper assessment
+enabled, add `--no-quarantine` or macOS refuses to open them:
 
 ```sh
-brew install --cask --no-quarantine ryan953/tap/dex-ui
+brew install --cask --no-quarantine ryan953/tap/tasks-ui
 ```
 
-Signing and notarizing the app in the source repository would remove the need
-for that flag. Making the repository public would remove the need for the token
-and let CI test the cask.
+Signing and notarizing the apps would remove the need for that flag. Making
+those repositories public would remove the need for the token and let CI test
+the casks.
 
 ## Add a new formula
 
@@ -105,13 +166,14 @@ and let CI test the cask.
    scripts/bump-formula.sh <name> <version>
    ```
 
-4. Add a row to the table above.
+4. Add a row to the table above. `sync.yml` picks a public formula up on its
+   own; a private one needs the `bump.yml` caller shown earlier.
 
 ## Add a new cask
 
 1. Release the application as a `.zip` holding `<Name>.app` at its top level.
 
-2. Copy `Casks/dex-ui.rb` to `Casks/<token>.rb`. Change the token on the first
+2. Copy `Casks/tasks-ui.rb` to `Casks/<token>.rb`. Change the token on the first
    line, then `name`, `desc`, `homepage`, `depends_on macos:`, the `app` line
    and the `zap` paths.
 
@@ -120,8 +182,11 @@ and let CI test the cask.
 
    The URL must carry the version somewhere, or `brew audit` demands
    `sha256 :no_check` and gives up on verifying the download. The asset ID
-   names no version, so `Casks/dex-ui.rb` ends its URL with `?v=#{version}`.
+   names no version, so the casks here end their URL with `?v=#{version}`.
    GitHub ignores the parameter.
+
+   `scripts/bump-cask.sh` reads the source repository out of the `homepage`
+   line, so that line has to point at the real repository.
 
 3. Fill in the asset ID and the checksum:
 
@@ -129,13 +194,16 @@ and let CI test the cask.
    scripts/bump-cask.sh <token> <version>
    ```
 
-4. Add a row to the table above.
+4. Add a row to the table above, and add the `bump.yml` caller shown earlier to
+   the source repository.
 
-## Update to a new version
+## Update to a new version by hand
+
+This happens on its own. Do it by hand only to repair a bump that failed:
 
 ```sh
 scripts/bump-formula.sh repo-metrics 0.3.0
-scripts/bump-cask.sh dex-ui 1.1.0
+scripts/bump-cask.sh tasks-ui 1.1.0
 git commit -am "repo-metrics 0.3.0"
 git push
 ```
@@ -146,17 +214,9 @@ it, downloads each asset, and writes the new `sha256` values.
 `bump-cask.sh` looks up the release by tag, finds the one downloadable asset,
 and writes the version, the new asset ID and the `sha256`.
 
-For a formula you can also do this from GitHub: **Actions → Bump formula → Run
-workflow**. That does not work for a cask from a private repository, because
-the runner's token cannot read it. Bump those locally.
-
-`bg-monitor` is the exception, and you should not normally bump it at all. The
-**Release** workflow in `ryan953/launch-agent-monitor` cuts the release and then
-runs `scripts/bump-cask.sh bg-monitor <version>` here itself, pushing the
-resulting commit. It gets away with what this tap's own runner cannot because it
-supplies its own PAT, which can read the private source repository. If that
-token is missing the release still happens and the bump is skipped, and the
-workflow summary says so — that is when you bump it by hand.
+You can also do this from GitHub: **Actions → Bump → Run workflow**, choosing
+`formula` or `cask`. Unlike the old formula-only workflow, that now works for a
+cask from a private repository too, as long as `TAP_TOKEN` is set here.
 
 ## Check your work
 
@@ -179,8 +239,10 @@ macOS and Linux.
   `brew test-bot --only-formulae` and installs each formula by name instead.
 - CI checks the style, syntax and audit of every cask, but does not install
   one. The runner has no access to a private source repository.
-- The tap is public because `brew tap` needs read access without a token. The
-  cask being public gives nothing away; the download still needs a token.
+- The tap is public because `brew tap` needs read access without a token. A
+  reusable workflow in a public repository can also be called from a private
+  one, which is what lets the private projects bump the tap.
+- The cask being public gives nothing away; the download still needs a token.
 - `brew style` runs `shfmt` over `scripts/`, and `shfmt` truncates a file it
   cannot parse. It cannot parse a heredoc inside `$( )`, so multi-line Python
   lives in its own file, `scripts/pick_release_asset.py`. Check `bash -n` after

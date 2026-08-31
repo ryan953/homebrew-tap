@@ -1,29 +1,84 @@
-name: Bump formula
+name: Bump
+
+# Moves one formula or cask to a new version. Callable by a source repository
+# on release, so a single definition of "bump" serves every entry in the tap.
 
 on:
   workflow_dispatch:
     inputs:
-      formula:
-        description: Formula name, without the .rb suffix
+      kind:
+        description: Formula (a command-line program) or cask (a macOS app)
+        required: true
+        type: choice
+        options: [formula, cask]
+      name:
+        description: Formula or cask name, without the .rb suffix
         required: true
       version:
-        description: New version, without a leading v
+        description: New version, with or without a leading v
         required: true
+
+  workflow_call:
+    inputs:
+      kind: { required: true, type: string }
+      name: { required: true, type: string }
+      version: { required: true, type: string }
+    secrets:
+      # Declared optional so a caller that forgot it gets the explanation below
+      # rather than a secret-not-found error.
+      TAP_TOKEN: { required: false }
 
 jobs:
   bump:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
+      - name: Guard the token
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          if [ "${{ github.repository }}" != "ryan953/homebrew-tap" ] && [ -z "${TAP_TOKEN}" ]; then
+            echo "::error::TAP_TOKEN is not set in ${{ github.repository }}. It needs"
+            echo "Contents: Read+Write on ryan953/homebrew-tap, and Contents: Read here."
+            exit 1
+          fi
 
-      - name: Bump the formula
-        run: scripts/bump-formula.sh "${{ inputs.formula }}" "${{ inputs.version }}"
+      # A reusable workflow checks out the CALLER's repository by default.
+      - uses: actions/checkout@v7
+        with:
+          repository: ryan953/homebrew-tap
+          ref: main
+          token: ${{ secrets.TAP_TOKEN || github.token }}
+
+      - name: Bump ${{ inputs.name }}
+        env:
+          # bump-cask.sh reads a private release through the API and needs this.
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.TAP_TOKEN || github.token }}
+          KIND: ${{ inputs.kind }}
+          NAME: ${{ inputs.name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          case "$KIND" in
+            formula) scripts/bump-formula.sh "$NAME" "$VERSION" ;;
+            cask)    scripts/bump-cask.sh    "$NAME" "$VERSION" ;;
+            *) echo "::error::kind must be formula or cask, got '$KIND'"; exit 1 ;;
+          esac
 
       - name: Commit
+        env:
+          NAME: ${{ inputs.name }}
+          VERSION: ${{ inputs.version }}
         run: |
+          set -euo pipefail
+          # Re-running a release is a success, not a failed empty commit.
+          if git diff --quiet; then
+            echo "${NAME} is already at ${VERSION#v}." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "${{ inputs.formula }} ${{ inputs.version }}"
+          git commit -am "${NAME} ${VERSION#v}"
           git push
+          echo "Bumped ryan953/tap/${NAME} to ${VERSION#v}" >> "$GITHUB_STEP_SUMMARY"
