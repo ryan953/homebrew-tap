@@ -43,50 +43,59 @@ The cask token does not always match its repository. `bg-monitor` comes from
 was renamed. `tap_migrations.json` moves an existing `dex-ui` install across, so
 `brew upgrade` follows the rename on its own.
 
-## A release bumps the tap on its own
+## The tap keeps itself up to date
 
-Each source repository calls `.github/workflows/bump.yml` in this tap when it
-publishes a release. That workflow checks out the tap, runs the same bump script
-you would run by hand, and pushes the result. Nobody has to remember to update a
-version here.
+Two directions, chosen by who owns the source repository.
 
-```
-tasks-ui             release: published ─┐
-launch-agent-monitor release: published ─┼─> ryan953/homebrew-tap  Bump  ─> commit
-repo-metrics         release: published ─┘
-```
-
-The bump logic lives here, in `scripts/`, and not in each project, so the three
-projects cannot drift apart. A project only says which kind it is and what it is
-called:
+**Casks push.** `tasks-ui` and `launch-agent-monitor` are personal and private.
+A private release asset cannot be read without a token, so those repositories
+call `.github/workflows/bump.yml` here when they publish a release:
 
 ```yaml
 jobs:
-  bump:
+  tap:
+    needs: release
     uses: ryan953/homebrew-tap/.github/workflows/bump.yml@main
-    with:
-      kind: cask          # or: formula
-      name: tasks-ui
-      version: ${{ github.event.release.tag_name }}
+    with: { kind: cask, name: tasks-ui, version: "${{ needs.release.outputs.tag }}" }
     secrets:
       TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
 ```
 
+They hang the job off the release rather than listening for
+`release: published`. That event never fires: GitHub suppresses workflow
+triggers for anything a `GITHUB_TOKEN` did, and those releases are created with
+`github.token`.
+
+**Formulae pull.** `repo-metrics` lives in `getsentry`, a work org, and is
+deliberately not coupled to this personal space — it holds no token for the tap
+and references no workflow from it. It is public, so `sync.yml` here watches its
+releases instead, daily, and bumps anything that is behind:
+
+```sh
+scripts/sync-formulae.sh --dry-run
+```
+
+That reads each formula's `homepage`, asks GitHub for the latest release, and
+compares it with the version in the URLs. Adding a public formula needs no
+change to it.
+
+Either way the bump logic itself stays here, in `scripts/`, and is never copied
+into a project. That is what stops the entries drifting apart.
+
 ### The TAP_TOKEN secret
 
-A repository's own `github.token` is scoped to that repository, so it cannot
-push here. Each source repository needs a `TAP_TOKEN` secret instead:
+Only the two cask repositories need this. A repository's own `github.token` is
+scoped to that repository, so it cannot push here:
 
 - **Contents: Read and write** on `ryan953/homebrew-tap`, to push the bump.
 - **Contents: Read** on the source repository, because a cask bump downloads the
   release asset to checksum it.
 
-A classic token with `repo` covers both. Set it once per repository:
+A classic token with `repo` covers both:
 
 ```sh
 gh secret set TAP_TOKEN -R ryan953/tasks-ui
 gh secret set TAP_TOKEN -R ryan953/launch-agent-monitor
-gh secret set TAP_TOKEN -R getsentry/repo-metrics
 ```
 
 Without the secret the bump job fails with a message that says so, and the
@@ -157,8 +166,8 @@ the casks.
    scripts/bump-formula.sh <name> <version>
    ```
 
-4. Add a row to the table above, and add the `bump.yml` caller shown earlier to
-   the source repository.
+4. Add a row to the table above. `sync.yml` picks a public formula up on its
+   own; a private one needs the `bump.yml` caller shown earlier.
 
 ## Add a new cask
 
@@ -190,7 +199,7 @@ the casks.
 
 ## Update to a new version by hand
 
-A release does this on its own. Do it by hand only to repair a bump that failed:
+This happens on its own. Do it by hand only to repair a bump that failed:
 
 ```sh
 scripts/bump-formula.sh repo-metrics 0.3.0

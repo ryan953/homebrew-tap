@@ -1,0 +1,38 @@
+name: Sync formulae
+
+# Pulls new versions in, rather than waiting to be pushed one.
+#
+# getsentry/repo-metrics is a work repository and is deliberately not coupled to
+# anything in this personal space: it holds no token for the tap and references
+# no workflow from it. It is public, so the tap can watch its releases instead.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Bump anything that is behind
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/sync-formulae.sh
+
+      - name: Commit
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Everything is up to date." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "sync formulae with their latest releases"
+          git push
+          git show --stat --oneline HEAD >> "$GITHUB_STEP_SUMMARY"
