@@ -1,6 +1,6 @@
 cask "tasks-ui" do
-  version "1.0.0"
-  sha256 "cfefc6cd1b01406caf27876b39c333561c7e0af51854ca9d179b1a1277507395"
+  version "1.1.0"
+  sha256 "673a43b40ba8b93f0caf53671447ef1ccd5ac47b77e3339569535a81ada18cdc"
 
   url "https://github.com/ryan953/tasks-ui/releases/download/v#{version}/Tasks-#{version}-macos-universal.zip"
   name "Tasks"
