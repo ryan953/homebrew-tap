@@ -28,14 +28,15 @@ brew upgrade repo-metrics
 
 Every source repository is public, so nothing here needs a token to install.
 
-The apps are ad-hoc signed rather than notarized. On a Mac with Gatekeeper
-assessment enabled, add `--no-quarantine` or macOS refuses to open them:
+The apps are ad-hoc signed rather than notarized, so macOS quarantines them.
+That only bites on first launch, which needs **right-click → Open** once, or:
 
 ```sh
-brew install --cask --no-quarantine ryan953/tap/tasks-ui
+brew install --cask ryan953/tap/tasks-ui
+xattr -dr com.apple.quarantine "/Applications/Tasks.app"
 ```
 
-Signing and notarizing them would remove the need for that flag.
+Signing and notarizing them would remove that step.
 
 ## What is in the tap
 
