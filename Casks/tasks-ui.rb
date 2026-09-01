@@ -22,4 +22,18 @@ cask "tasks-ui" do
     "~/Library/Preferences/com.ryan953.dex-ui.plist",
     "~/Library/Saved Application State/com.ryan953.dex-ui.savedState",
   ]
+
+  # The CLI is a convenience, not a requirement, so it is documented rather than
+  # declared as a dependency: the app reads a key from Settings first and only
+  # falls back to the CLI, and a cask dependency would force the install.
+  caveats <<~EOS
+    Tasks borrows an API key from the `linear` CLI when it is installed and
+    logged in, so there is nothing to configure:
+
+      brew install schpet/tap/linear
+      linear auth login
+
+    Otherwise put a personal API key in Settings -> Linear. A key set there
+    is kept in the login keychain and takes precedence over the CLI.
+  EOS
 end
