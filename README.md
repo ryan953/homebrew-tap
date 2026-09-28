@@ -110,10 +110,10 @@ to the source, so a fine-grained token scoped to `ryan953/homebrew-tap` with
 **Contents: Read and write** is enough.
 
 ```sh
-gh secret set TAP_TOKEN -R ryan953/tasks-ui
-gh secret set TAP_TOKEN -R ryan953/launch-agent-monitor
-gh secret set TAP_TOKEN -R ryan953/worktrees-ui
 gh secret set TAP_TOKEN -R ryan953/construct
+gh secret set TAP_TOKEN -R ryan953/launch-agent-monitor
+gh secret set TAP_TOKEN -R ryan953/tasks-ui
+gh secret set TAP_TOKEN -R ryan953/worktrees-ui
 ```
 
 Without it the bump job fails with a message saying so, the release itself still
