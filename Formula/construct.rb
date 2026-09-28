@@ -6,28 +6,28 @@ class Construct < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/ryan953/construct/releases/download/v0.0.0/construct-v0.0.0-aarch64-apple-darwin.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      url "https://github.com/ryan953/construct/releases/download/v0.1.0/construct-v0.1.0-aarch64-apple-darwin.tar.gz"
+      sha256 "80ccf38aefc47286ef50fa5e600556b709f7acea51b99fa51f2f052360a54210"
     end
 
     on_intel do
-      url "https://github.com/ryan953/construct/releases/download/v0.0.0/construct-v0.0.0-x86_64-apple-darwin.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      url "https://github.com/ryan953/construct/releases/download/v0.1.0/construct-v0.1.0-x86_64-apple-darwin.tar.gz"
+      sha256 "885173fb30bd3e94fc07767eebce70264f63d663155b13cd3ccc281b90f48dd6"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/ryan953/construct/releases/download/v0.0.0/construct-v0.0.0-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      url "https://github.com/ryan953/construct/releases/download/v0.1.0/construct-v0.1.0-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "a2c6aeae587d627c46b04a620c8be9cc271f8cea5e60890470f3059d476866f5"
     end
 
     # There is no aarch64 Linux build. Homebrew needs every platform to resolve
     # to a URL, so name the x86_64 archive and let the arch requirement refuse
     # the install instead of unpacking the wrong binary.
     on_arm do
-      url "https://github.com/ryan953/construct/releases/download/v0.0.0/construct-v0.0.0-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      url "https://github.com/ryan953/construct/releases/download/v0.1.0/construct-v0.1.0-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "a2c6aeae587d627c46b04a620c8be9cc271f8cea5e60890470f3059d476866f5"
       depends_on arch: :x86_64
     end
   end
