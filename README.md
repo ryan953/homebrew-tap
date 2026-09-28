@@ -7,6 +7,7 @@ A personal Homebrew tap for software by [@ryan953](https://github.com/ryan953).
 ```sh
 brew tap ryan953/tap
 brew install ryan953/tap/repo-metrics
+brew install ryan953/tap/construct
 brew install --cask ryan953/tap/tasks-ui
 brew install --cask ryan953/tap/bg-monitor
 brew install --cask ryan953/tap/prqueue
@@ -45,6 +46,7 @@ Formulae are command-line programs. Casks are macOS applications.
 | Formula | Source | Description |
 | --- | --- | --- |
 | `repo-metrics` | [getsentry/repo-metrics](https://github.com/getsentry/repo-metrics) | Fast local git repository metrics and visualizations, straight from the repo |
+| `construct` | [ryan953/construct](https://github.com/ryan953/construct) | Track tasks and their pull requests through one state machine |
 
 | Cask | App | Source | Description |
 | --- | --- | --- | --- |
@@ -108,8 +110,9 @@ to the source, so a fine-grained token scoped to `ryan953/homebrew-tap` with
 **Contents: Read and write** is enough.
 
 ```sh
-gh secret set TAP_TOKEN -R ryan953/tasks-ui
+gh secret set TAP_TOKEN -R ryan953/construct
 gh secret set TAP_TOKEN -R ryan953/launch-agent-monitor
+gh secret set TAP_TOKEN -R ryan953/tasks-ui
 gh secret set TAP_TOKEN -R ryan953/worktrees-ui
 ```
 
