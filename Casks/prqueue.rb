@@ -1,6 +1,6 @@
 cask "prqueue" do
-  version "1.1.0"
-  sha256 "e01aa8e19ef900c97fac774f27c00e2caf2518eb3909d73b62fc445d8998486f"
+  version "1.2.0"
+  sha256 "3aab8f559c1e8e6ff2c34ffe446072ece71bef6296d325db02c47feddb03b19f"
 
   url "https://github.com/ryan953/prqueue/releases/download/v#{version}/PRQueue-#{version}-macos-universal.zip"
   name "PR Queue"
